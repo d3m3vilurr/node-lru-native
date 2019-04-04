@@ -14,5 +14,8 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then npm test; fi
 
 node_js:
+  - 4
+  - 5
+  - 6
   - 8
   - 10
