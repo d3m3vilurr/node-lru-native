@@ -1,9 +1,9 @@
-const assert = require('chai').assert;
-const LRUCache = require('..');
+var assert = require('chai').assert;
+var LRUCache = require('..');
 
 describe('maxAge', () => {
   describe('a cache with a maxAge of 100ms', () => {
-    let cache = undefined;
+    var cache = undefined;
     beforeEach(() => {
       cache = new LRUCache({maxAge: 100});
     });

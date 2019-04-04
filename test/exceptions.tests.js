@@ -1,9 +1,9 @@
-const assert = require('chai').assert;
-const LRUCache = require('..');
+var assert = require('chai').assert;
+var LRUCache = require('..');
 
 describe('exceptions', () => {
   describe('a cache with default settings', () => {
-    let cache = undefined;
+    var cache = undefined;
     beforeEach(() => {
       cache = new LRUCache();
     });

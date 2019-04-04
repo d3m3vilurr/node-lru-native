@@ -1,5 +1,5 @@
-const LRUCache = require('../index.js');
-const Cache = new LRUCache();
+var LRUCache = require('../index.js');
+var Cache = new LRUCache();
 
 Cache.set('test', 1);
 console.log('Set/Get');
