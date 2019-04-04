@@ -29,7 +29,7 @@
   },
   "devDependencies": {
 	"chai": "latest",
-	"mocha": "latest",
+	"mocha": "^5.2.0",
 	"nan": "^2.2.0"
   },
   "scripts": {
