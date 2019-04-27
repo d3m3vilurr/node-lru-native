@@ -139,11 +139,10 @@ NAN_METHOD(LRUCache::New) {
 }
 
 NAN_METHOD(LRUCache::Get) {
-  LRUCache* cache = GET_LRU_CACHE();
-
   ASSERT_ARG_LENGTH(1);
   ASSERT_ARG_TYPE_IS_STRING(0);
 
+  LRUCache* cache = GET_LRU_CACHE();
   const HashMap::const_iterator itr = cache->data.find(convertArgToString(info[0]));
 
   // If the specified entry doesn't exist, return undefined.
@@ -175,11 +174,11 @@ NAN_METHOD(LRUCache::Get) {
 }
 
 NAN_METHOD(LRUCache::Set) {
-  LRUCache* cache = GET_LRU_CACHE();
-  unsigned long now = getCurrentTime();
-
   ASSERT_ARG_LENGTH(2);
   ASSERT_ARG_TYPE_IS_STRING(0);
+
+  LRUCache* cache = GET_LRU_CACHE();
+  unsigned long now = getCurrentTime();
 
   std::string key = convertArgToString(info[0]);
   Local<Value> value = info[1];
@@ -217,10 +216,10 @@ NAN_METHOD(LRUCache::Set) {
 }
 
 NAN_METHOD(LRUCache::Remove) {
-  LRUCache* cache = GET_LRU_CACHE();
-
   ASSERT_ARG_LENGTH(1);
   ASSERT_ARG_TYPE_IS_STRING(0);
+
+  LRUCache* cache = GET_LRU_CACHE();
 
   const HashMap::iterator itr = cache->data.find(convertArgToString(info[0]));
   if (itr != cache->data.end()) {
@@ -258,18 +257,18 @@ NAN_METHOD(LRUCache::Stats) {
 }
 
 NAN_METHOD(LRUCache::SetMaxAge) {
-  LRUCache* cache = GET_LRU_CACHE();
-
   ASSERT_ARG_LENGTH(1);
+
+  LRUCache* cache = GET_LRU_CACHE();
 
   cache->maxAge = convertLocalValueToRawType<int64_t>(info[0]);
   cache->gc(getCurrentTime(), true);
 }
 
 NAN_METHOD(LRUCache::SetMaxElements) {
-  LRUCache* cache = GET_LRU_CACHE();
-
   ASSERT_ARG_LENGTH(1);
+
+  LRUCache* cache = GET_LRU_CACHE();
 
   cache->maxElements = convertLocalValueToRawType<int64_t>(info[0]);
   while (cache->maxElements > 0 && cache->data.size() > cache->maxElements) {
