@@ -58,6 +58,16 @@ unsigned long getCurrentTime() {
 #define IS_UINT32(val)    (!IS_UNDEFINED(val) && val->IsUint32())
 #define IS_NUM(val)       (!IS_UNDEFINED(val) && val->IsNumber())
 
+#define GET_LRU_CACHE() \
+  ObjectWrap::Unwrap<LRUCache>(info.This())
+
+#define RETURN_UNDEFINED() \
+  return info.GetReturnValue().SetUndefined()
+
+#define RETURN_VALUE(val) \
+  return info.GetReturnValue().Set(val)
+
+
 inline std::string convertArgToString(const Local<Value> arg) {
   Nan::Utf8String value(arg);
   return std::string(*value, static_cast<std::size_t>(value.length()));
@@ -85,7 +95,7 @@ NAN_MODULE_INIT(LRUCache::Init) {
   Nan::SetPrototypeMethod(tpl, "setMaxElements", SetMaxElements);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  Nan::Set(target, Nan::New("LRUCache").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+  SET_FIELD(target, "LRUCache", Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 NAN_METHOD(LRUCache::New) {
@@ -118,29 +128,27 @@ NAN_METHOD(LRUCache::New) {
     }
 
     cache->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    RETURN_VALUE(info.This());
   }
   else {
     const int argc = 1;
     Local<Value> argv[argc] = { info[0] };
     Local<v8::Function> ctor = Nan::New<v8::Function>(constructor);
-    info.GetReturnValue().Set(Nan::NewInstance(ctor, argc, argv).ToLocalChecked());
+    RETURN_VALUE(Nan::NewInstance(ctor, argc, argv).ToLocalChecked());
   }
 }
 
 NAN_METHOD(LRUCache::Get) {
-  LRUCache* cache = ObjectWrap::Unwrap<LRUCache>(info.This());
+  LRUCache* cache = GET_LRU_CACHE();
 
   ASSERT_ARG_LENGTH(1);
   ASSERT_ARG_TYPE_IS_STRING(0);
 
-  std::string key = convertArgToString(info[0]);
-  const HashMap::const_iterator itr = cache->data.find(key);
+  const HashMap::const_iterator itr = cache->data.find(convertArgToString(info[0]));
 
   // If the specified entry doesn't exist, return undefined.
   if (itr == cache->data.end()) {
-    info.GetReturnValue().SetUndefined();
-    return;
+    RETURN_UNDEFINED();
   }
 
   HashEntry* entry = itr->second;
@@ -152,7 +160,7 @@ NAN_METHOD(LRUCache::Get) {
     cache->remove(itr);
 
     // Return undefined.
-    info.GetReturnValue().SetUndefined();
+    RETURN_UNDEFINED();
   }
   else {
     // Update timestamp
@@ -162,12 +170,12 @@ NAN_METHOD(LRUCache::Get) {
     cache->lru.splice(cache->lru.end(), cache->lru, entry->pointer);
 
     // Return the value.
-    info.GetReturnValue().Set(Nan::New(entry->value));
+    RETURN_VALUE(Nan::New(entry->value));
   }
 }
 
 NAN_METHOD(LRUCache::Set) {
-  LRUCache* cache = ObjectWrap::Unwrap<LRUCache>(info.This());
+  LRUCache* cache = GET_LRU_CACHE();
   unsigned long now = getCurrentTime();
 
   ASSERT_ARG_LENGTH(2);
@@ -205,43 +213,40 @@ NAN_METHOD(LRUCache::Set) {
   cache->gc(now);
 
   // Return undefined.
-  info.GetReturnValue().SetUndefined();
+  RETURN_UNDEFINED();
 }
 
 NAN_METHOD(LRUCache::Remove) {
-  LRUCache* cache = ObjectWrap::Unwrap<LRUCache>(info.This());
-
+  LRUCache* cache = GET_LRU_CACHE();
 
   ASSERT_ARG_LENGTH(1);
   ASSERT_ARG_TYPE_IS_STRING(0);
 
-  std::string key = convertArgToString(info[0]);
-  const HashMap::iterator itr = cache->data.find(key);
-
+  const HashMap::iterator itr = cache->data.find(convertArgToString(info[0]));
   if (itr != cache->data.end()) {
     cache->remove(itr);
   }
 
-  info.GetReturnValue().SetUndefined();
+  RETURN_UNDEFINED();
 }
 
 NAN_METHOD(LRUCache::Clear) {
-  LRUCache* cache = ObjectWrap::Unwrap<LRUCache>(info.This());
+  LRUCache* cache = GET_LRU_CACHE();
 
   cache->disposeAll();
   cache->data.clear();
   cache->lru.clear();
 
-  info.GetReturnValue().SetUndefined();
+  RETURN_UNDEFINED();
 }
 
 NAN_METHOD(LRUCache::Size) {
-  LRUCache* cache = ObjectWrap::Unwrap<LRUCache>(info.This());
-  info.GetReturnValue().Set(Nan::New<Number>(cache->data.size()));
+  LRUCache* cache = GET_LRU_CACHE();
+  RETURN_VALUE(Nan::New<Number>(cache->data.size()));
 }
 
 NAN_METHOD(LRUCache::Stats) {
-  LRUCache* cache = ObjectWrap::Unwrap<LRUCache>(info.This());
+  LRUCache* cache = GET_LRU_CACHE();
 
   Local<Object> stats = Nan::New<Object>();
   SET_FIELD(stats, "size", Nan::New<Number>(cache->data.size()));
@@ -249,11 +254,11 @@ NAN_METHOD(LRUCache::Stats) {
   SET_FIELD(stats, "loadFactor", Nan::New<Number>(cache->data.load_factor()));
   SET_FIELD(stats, "maxLoadFactor", Nan::New<Number>(cache->data.max_load_factor()));
 
-  info.GetReturnValue().Set(stats);
+  RETURN_VALUE(stats);
 }
 
 NAN_METHOD(LRUCache::SetMaxAge) {
-  LRUCache* cache = ObjectWrap::Unwrap<LRUCache>(info.This());
+  LRUCache* cache = GET_LRU_CACHE();
 
   ASSERT_ARG_LENGTH(1);
 
@@ -262,7 +267,7 @@ NAN_METHOD(LRUCache::SetMaxAge) {
 }
 
 NAN_METHOD(LRUCache::SetMaxElements) {
-  LRUCache* cache = ObjectWrap::Unwrap<LRUCache>(info.This());
+  LRUCache* cache = GET_LRU_CACHE();
 
   ASSERT_ARG_LENGTH(1);
 
