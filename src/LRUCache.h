@@ -39,17 +39,17 @@ private:
     KeyList::iterator pointer;
     unsigned long timestamp;
 
-    HashEntry(Local<Value> value, unsigned long timestamp, KeyList::iterator pointer) {
+    HashEntry(const Local<Value> value, const unsigned long timestamp, const KeyList::iterator pointer) {
       this->set(value, timestamp);
       this->pointer = pointer;
     }
 
-    void set(Local<Value> value, unsigned long timestamp) {
+    void set(const Local<Value> value, const unsigned long timestamp) {
       this->value.Reset(value);
       this->timestamp = timestamp;
     }
 
-    void touch(unsigned long timestamp) {
+    void touch(const unsigned long timestamp) {
       this->timestamp = timestamp;
     }
 
@@ -69,7 +69,7 @@ private:
   void disposeAll();
   void evict();
   void remove(HashMap::const_iterator itr);
-  void gc(unsigned long now, bool force=false);
+  void gc(const unsigned long now, const bool force=false);
 
 };
 

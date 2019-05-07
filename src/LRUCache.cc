@@ -69,7 +69,7 @@ unsigned long getCurrentTime() {
 
 
 inline std::string convertArgToString(const Local<Value> arg) {
-  Nan::Utf8String value(arg);
+  const Nan::Utf8String value(arg);
   return std::string(*value, static_cast<std::size_t>(value.length()));
 }
 
@@ -103,7 +103,7 @@ NAN_METHOD(LRUCache::New) {
     LRUCache* cache = new LRUCache();
 
     if (info.Length() > 0 && info[0]->IsObject()) {
-      Local<Object> config = Nan::To<Object>(info[0]).ToLocalChecked();
+      const Local<Object> config = Nan::To<Object>(info[0]).ToLocalChecked();
       Local<Value> prop;
 
       prop = GET_FIELD(config, "maxElements").ToLocalChecked();
@@ -130,12 +130,11 @@ NAN_METHOD(LRUCache::New) {
     cache->Wrap(info.This());
     RETURN_VALUE(info.This());
   }
-  else {
-    const int argc = 1;
-    Local<Value> argv[argc] = { info[0] };
-    Local<v8::Function> ctor = Nan::New<v8::Function>(constructor);
-    RETURN_VALUE(Nan::NewInstance(ctor, argc, argv).ToLocalChecked());
-  }
+
+  const int argc = 1;
+  Local<Value> argv[argc] = { info[0] };
+  Local<v8::Function> ctor = Nan::New<v8::Function>(constructor);
+  RETURN_VALUE(Nan::NewInstance(ctor, argc, argv).ToLocalChecked());
 }
 
 NAN_METHOD(LRUCache::Get) {
@@ -152,7 +151,7 @@ NAN_METHOD(LRUCache::Get) {
 
   HashEntry* entry = itr->second;
 
-  unsigned long now = getCurrentTime();
+  const unsigned long now = getCurrentTime();
   if (cache->maxAge > 0 && now - entry->timestamp > cache->maxAge) {
   // if (cache->maxAge > 0 && getCurrentTime() - entry->timestamp > cache->maxAge) {
     // The entry has passed the maximum age, so we need to remove it.
@@ -161,16 +160,15 @@ NAN_METHOD(LRUCache::Get) {
     // Return undefined.
     RETURN_UNDEFINED();
   }
-  else {
-    // Update timestamp
-    entry->touch(now);
 
-    // Move the value to the end of the LRU list.
-    cache->lru.splice(cache->lru.end(), cache->lru, entry->pointer);
+  // Update timestamp
+  entry->touch(now);
 
-    // Return the value.
-    RETURN_VALUE(Nan::New(entry->value));
-  }
+  // Move the value to the end of the LRU list.
+  cache->lru.splice(cache->lru.end(), cache->lru, entry->pointer);
+
+  // Return the value.
+  RETURN_VALUE(Nan::New(entry->value));
 }
 
 NAN_METHOD(LRUCache::Set) {
@@ -178,10 +176,10 @@ NAN_METHOD(LRUCache::Set) {
   ASSERT_ARG_TYPE_IS_STRING(0);
 
   LRUCache* cache = GET_LRU_CACHE();
-  unsigned long now = getCurrentTime();
+  const unsigned long now = getCurrentTime();
 
-  std::string key = convertArgToString(info[0]);
-  Local<Value> value = info[1];
+  const std::string key = convertArgToString(info[0]);
+  const Local<Value> value = info[1];
   const HashMap::iterator itr = cache->data.find(key);
 
   if (itr == cache->data.end()) {
@@ -191,7 +189,7 @@ NAN_METHOD(LRUCache::Set) {
     }
 
     // Add the value to the end of the LRU list.
-    KeyList::iterator pointer = cache->lru.insert(cache->lru.end(), key);
+    const KeyList::iterator pointer = cache->lru.insert(cache->lru.end(), key);
 
     // Add the entry to the key-value map.
     HashEntry* entry = new HashEntry(value, now, pointer);
@@ -247,7 +245,7 @@ NAN_METHOD(LRUCache::Size) {
 NAN_METHOD(LRUCache::Stats) {
   LRUCache* cache = GET_LRU_CACHE();
 
-  Local<Object> stats = Nan::New<Object>();
+  const Local<Object> stats = Nan::New<Object>();
   SET_FIELD(stats, "size", Nan::New<Number>(cache->data.size()));
   SET_FIELD(stats, "buckets", Nan::New<Number>(cache->data.bucket_count()));
   SET_FIELD(stats, "loadFactor", Nan::New<Number>(cache->data.load_factor()));
@@ -328,10 +326,7 @@ void LRUCache::remove(const HashMap::const_iterator itr) {
   delete entry;
 }
 
-void LRUCache::gc(unsigned long now, bool force) {
-  HashMap::iterator itr;
-  HashEntry* entry;
-
+void LRUCache::gc(const unsigned long now, const bool force) {
   // If there is no maximum age, we won't evict based on age.
   if (this->maxAge == 0) {
     return;
@@ -343,12 +338,12 @@ void LRUCache::gc(unsigned long now, bool force) {
   }
 
   while (!this->lru.empty()) {
-    itr = this->data.find(this->lru.front());
+    const HashMap::iterator itr = this->data.find(this->lru.front());
 
     if (itr == this->data.end())
       break;
 
-    entry = itr->second;
+    HashEntry *entry = itr->second;
 
     // Stop removing when live entry is encountered.
     if (now - entry->timestamp < this->maxAge)
