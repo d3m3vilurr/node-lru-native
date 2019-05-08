@@ -58,6 +58,11 @@ unsigned long getCurrentTime() {
 #define IS_UINT32(val)    (!IS_UNDEFINED(val) && val->IsUint32())
 #define IS_NUM(val)       (!IS_UNDEFINED(val) && val->IsNumber())
 
+#define TO_RAWTYPE(type, var) Nan::To<type>(var).FromJust()
+#define TO_INT64(var)   TO_RAWTYPE(int64_t, var)
+#define TO_UINT32(var)  TO_RAWTYPE(uint32_t, var)
+#define TO_DOUBLE(var)  TO_RAWTYPE(double, var)
+
 #define GET_LRU_CACHE() \
   ObjectWrap::Unwrap<LRUCache>(info.This())
 
@@ -67,15 +72,9 @@ unsigned long getCurrentTime() {
 #define RETURN_VALUE(val) \
   return info.GetReturnValue().Set(val)
 
-
 inline std::string convertArgToString(const Local<Value> arg) {
   const Nan::Utf8String value(arg);
   return std::string(*value, static_cast<std::size_t>(value.length()));
-}
-
-template<typename T>
-inline T convertLocalValueToRawType(const Local<Value> arg) {
-  return Nan::To<T>(arg).FromJust();
 }
 
 Nan::Persistent<Function> LRUCache::constructor;
@@ -108,22 +107,22 @@ NAN_METHOD(LRUCache::New) {
 
       prop = GET_FIELD(config, "maxElements").ToLocalChecked();
       if (IS_UINT32(prop)) {
-        cache->maxElements = convertLocalValueToRawType<uint32_t>(prop);
+        cache->maxElements = TO_UINT32(prop);
       }
 
       prop = GET_FIELD(config, "maxAge").ToLocalChecked();
       if (IS_UINT32(prop)) {
-        cache->maxAge = convertLocalValueToRawType<uint32_t>(prop);
+        cache->maxAge = TO_UINT32(prop);
       }
 
       prop = GET_FIELD(config, "maxLoadFactor").ToLocalChecked();
       if (IS_NUM(prop)) {
-        cache->data.max_load_factor(convertLocalValueToRawType<double>(prop));
+        cache->data.max_load_factor(TO_DOUBLE(prop));
       }
 
       prop = GET_FIELD(config, "size").ToLocalChecked();
       if (IS_UINT32(prop)) {
-        cache->data.rehash(ceil(convertLocalValueToRawType<uint32_t>(prop) / cache->data.max_load_factor()));
+        cache->data.rehash(ceil(TO_UINT32(prop) / cache->data.max_load_factor()));
       }
     }
 
@@ -258,7 +257,7 @@ NAN_METHOD(LRUCache::SetMaxAge) {
 
   LRUCache* cache = GET_LRU_CACHE();
 
-  cache->maxAge = convertLocalValueToRawType<int64_t>(info[0]);
+  cache->maxAge = TO_INT64(info[0]);
   cache->gc(getCurrentTime(), true);
 }
 
@@ -267,7 +266,7 @@ NAN_METHOD(LRUCache::SetMaxElements) {
 
   LRUCache* cache = GET_LRU_CACHE();
 
-  cache->maxElements = convertLocalValueToRawType<int64_t>(info[0]);
+  cache->maxElements = TO_INT64(info[0]);
   while (cache->maxElements > 0 && cache->data.size() > cache->maxElements) {
     cache->evict();
   }
