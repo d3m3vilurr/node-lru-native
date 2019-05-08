@@ -153,7 +153,6 @@ NAN_METHOD(LRUCache::Get) {
 
   const unsigned long now = getCurrentTime();
   if (cache->maxAge > 0 && now - entry->timestamp > cache->maxAge) {
-  // if (cache->maxAge > 0 && getCurrentTime() - entry->timestamp > cache->maxAge) {
     // The entry has passed the maximum age, so we need to remove it.
     cache->remove(itr);
 
